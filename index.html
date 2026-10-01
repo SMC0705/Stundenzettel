@@ -589,7 +589,15 @@ function tick(){
 }
 setInterval(tick,15000);
 
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));}
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js")
+    .then(r=>r.update()).catch(()=>{}));
+  /* Neue Version aktiv geworden: einmal neu laden, damit sie sofort sichtbar ist */
+  let _reloaded=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(_reloaded)return; _reloaded=true; location.reload();
+  });
+}
 
 (async function init(){
   const saved=await Store.get();
