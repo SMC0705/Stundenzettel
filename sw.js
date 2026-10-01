@@ -1,5 +1,5 @@
 /* Service Worker: macht die App offline nutzbar */
-const CACHE = "stundenzettel-v1";
+const CACHE = "stundenzettel-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./jspdf.umd.min.js",
                 "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 

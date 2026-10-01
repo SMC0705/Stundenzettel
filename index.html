@@ -194,7 +194,7 @@ p.hint{font-size:13px;color:var(--muted);margin:-4px 0 16px}
     <button class="ghost" data-pdfopen="1">Stattdessen im Browser öffnen</button>
 
     <h2>Monatsübersicht zur Lohnmeldung</h2>
-    <p class="hint">Leerer Vordruck zum selbst Eintragen. Deine Zahlen dafür stehen unter „Monat“.</p>
+    <p class="hint">Überstunden, Urlaub, Überstundenabbau und Krankheit.</p>
     <button class="big" data-pdf="2">Als PDF herunterladen</button>
     <button class="ghost" data-pdfopen="2">Stattdessen im Browser öffnen</button>
 
@@ -300,6 +300,7 @@ function sollFor(key){
   return +DB.settings.sollMoDo||0;
 }
 const autoOT=(d,key)=>Math.round((minutes(d)/60-sollFor(key||selDate))*100)/100;
+const otOf=(d,key)=>d.otManual?(d.ot||0):autoOT(d,key);
 
 /* ---------- Tagesansicht ---------- */
 let selDate=iso(new Date()), status="normal", otTouched=false;
@@ -316,7 +317,7 @@ function loadDay(){
   status=d.status||"normal";
   $("datum").value=selDate;
   ["beginn","ende","p1von","p1bis","p2von","p2bis","baustelle"].forEach(k=>$(k).value=d[k]||"");
-  $("ot").value = d.ot===null||d.ot===undefined ? autoOT(d) : d.ot;
+  $("ot").value = DB.days[selDate]&&d.otManual ? d.ot : autoOT(d);
   $("abbau").value = d.abbau??"";
   otTouched = !!(DB.days[selDate] && DB.days[selDate].otManual);
   renderChips(); renderTagSum();
@@ -362,7 +363,7 @@ function renderMonat(){
         main=(d.beginn||"?")+" – "+(d.ende||"?");
         const p=[[d.p1von,d.p1bis],[d.p2von,d.p2bis]].filter(x=>x[0]&&x[1]).map(x=>x[0]+"–"+x[1]).join("  ");
         sub=WT[dt.getDay()].slice(0,2)+(p?"  ·  "+p:"")+(d.baustelle?"  ·  "+d.baustelle:"");
-        right=fmtOT(d.ot); sumMin+=minutes(d); sumOT+=(d.ot||0); nT++;
+        const o=otOf(d,key); right=fmtOT(o); sumMin+=minutes(d); sumOT+=o; nT++;
       }else{
         main=st.n;
         if(d.status==="urlaub")nU++;
@@ -450,8 +451,8 @@ function pdf2(){
   const {jsPDF}=window.jspdf, doc=new jsPDF({unit:"mm",format:"a4"});
   const last=new Date(view.y,view.m+1,0).getDate();
   doc.setFont("helvetica","normal");doc.setFontSize(11);
-  doc.text("Name:",16,30); line(doc,31,31.2,110,31.2);
-  doc.text("Monat:",132,30); line(doc,147,31.2,194,31.2);
+  doc.text("Name:",16,30); doc.text(DB.settings.name||"",32,30); line(doc,31,31.2,110,31.2);
+  doc.text("Monat:",132,30); doc.text(MON[view.m]+" "+view.y,148,30); line(doc,147,31.2,194,31.2);
   doc.setFont("helvetica","bold");doc.setFontSize(15);
   const tw=doc.getTextWidth("Monatsübersicht zur Lohnmeldung");
   doc.text("Monatsübersicht zur Lohnmeldung",105,48,{align:"center"});
@@ -466,8 +467,13 @@ function pdf2(){
     doc.text(t,cx[i]+W[i]/2,top+hh/2+1.4,{align:"center"}));
   doc.setFontSize(10.5);
   for(let i=1;i<=last;i++){
-    const y=top+hh+(i-1)*rh;
+    const y=top+hh+(i-1)*rh, key=iso(new Date(view.y,view.m,i)), d=DB.days[key];
     cell(doc,i+".",cx[0],W[0],y,rh,"c");
+    if(!d)continue;
+    if(d.status==="normal")cell(doc,fmtOT(otOf(d,key)),cx[1],W[1],y,rh,"c");
+    if(d.status==="urlaub")cell(doc,"X",cx[2],W[2],y,rh,"c");
+    if(d.status==="abbau")cell(doc,d.abbau?"- "+num(d.abbau):"X",cx[3],W[3],y,rh,"c");
+    if(d.status==="krank")cell(doc,"X",cx[4],W[4],y,rh,"c");
   }
   const bot=top+hh+last*rh;
   line(doc,X,top,right,top);line(doc,X,top+hh,right,top+hh);
@@ -482,7 +488,7 @@ function pdf2(){
 function makePdf(which,open){
   if(!window.jspdf){toast("PDF-Bibliothek nicht geladen. Kurz online gehen und neu laden.");return;}
   const doc = which==="1"?pdf1():pdf2();
-  const name=which==="1"?("Arbeitszeitaufzeichnung_"+MON[view.m]+"-"+view.y+".pdf"):"Lohnmeldung_Vordruck.pdf";
+  const name=(which==="1"?"Arbeitszeitaufzeichnung_":"Lohnmeldung_")+MON[view.m]+"-"+view.y+".pdf";
   if(open){ window.open(doc.output("bloburl"),"_blank"); return; }
   try{ doc.save(name); toast("PDF gespeichert"); }
   catch(e){ window.open(doc.output("bloburl"),"_blank"); }
@@ -514,6 +520,7 @@ $("baustelle").onfocus=()=>{if(!$("baustelle").value)$("baustelle").value="BV ";
 $("baustelle").onblur=()=>{if($("baustelle").value.trim()==="BV")$("baustelle").value="";};
 $("otAuto").onclick=()=>{otTouched=false;recalcOT();renderTagSum();toast("Überstunden neu berechnet");};
 function recalcOT(){ if(otTouched)return; $("ot").value=autoOT(collect()); }
+function numOr(v,alt){const n=parseFloat(String(v).replace(",","."));return isNaN(n)?alt:n;}
 function nowTime(){const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes());}
 
 $("sKommen").onclick=()=>{status="normal";renderChips();$("beginn").value=nowTime();otTouched=false;recalcOT();renderTagSum();toast("Beginn "+nowTime());};
@@ -566,8 +573,8 @@ function fillSet(){
 }
 $("saveSet").onclick=async()=>{
   DB.settings={name:$("sName").value.trim(),firma:$("sFirma").value.trim(),
-    sollMoDo:parseFloat($("sSollMoDo").value.replace(",","."))||0,
-    sollFr:parseFloat($("sSollFr").value.replace(",","."))||0,
+    sollMoDo:numOr($("sSollMoDo").value,DB.settings.sollMoDo),
+    sollFr:numOr($("sSollFr").value,DB.settings.sollFr),
     beginn:$("sBeginn").value,ende:$("sEnde").value,endeFr:$("sEndeFr").value,p1von:$("sP1v").value,p1bis:$("sP1b").value,
     p2von:$("sP2v").value,p2bis:$("sP2b").value,baustelle:$("sBs").value.trim()};
   await Store.set(DB);fillSet();renderMonat();toast("Einstellungen gespeichert");
