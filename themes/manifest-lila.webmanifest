@@ -1,0 +1,30 @@
+{
+  "name": "Stundenzettel",
+  "short_name": "Stunden",
+  "description": "Arbeitszeiten erfassen und als PDF ausgeben",
+  "lang": "de",
+  "start_url": "../",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#4B2A7B",
+  "theme_color": "#4B2A7B",
+  "icons": [
+    {
+      "src": "./icon-lila-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-lila-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-lila-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

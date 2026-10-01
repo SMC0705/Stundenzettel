@@ -1,18 +1,52 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#11386E">
+<meta name="theme-color" content="#11386E" id="metaTheme">
 <title>Stundenzettel</title>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<script>
+/* ---------- Designs ---------- */
+var RAINBOW="linear-gradient(90deg,#FF6B6B,#FFB86B,#FFE66D,#7BED9F,#70A1FF,#C56CF0)";
+var THEMES={
+ standard:{name:"Blau / Gelb",pri:"#11386E",priH:"#2A5FA8",priT:"#BFD4F0",akz:"#FFC72C",onAkz:"#11386E",paper:"#F4F7FC",ink:"#16233A",muted:"#5F7188",rule:"#D3DCE9",we:"#E9EFF8"},
+ sw:{name:"Schwarz / Weiß",pri:"#111111",priH:"#3A3A3A",priT:"#BDBDBD",akz:"#111111",onAkz:"#FFFFFF",hot:"#FFFFFF",onHot:"#111111",brand2:"#BDBDBD",
+     band:"repeating-linear-gradient(90deg,#FFFFFF 0 22px,#111111 22px 24px)",paper:"#FFFFFF",ink:"#111111",muted:"#666666",rule:"#D0D0D0",we:"#F2F2F2"},
+ regenbogen:{name:"Regenbogen",pri:"#22223B",priH:"#3D3D63",priT:"#C9C9E0",akz:RAINBOW,onAkz:"#22223B",brand2:"#FFE66D",band:RAINBOW,
+     solid:"#7B5CD6",paper:"#FBF8FF",ink:"#22223B",muted:"#6B6880",rule:"#E0DBEA",we:"#F2EEF8"},
+ wald:{name:"Wald",pri:"#1F4D2B",priH:"#2F6B3E",priT:"#CDE6D2",akz:"#A7D129",onAkz:"#163A20",paper:"#F4F8F2",ink:"#17301D",muted:"#5C7262",rule:"#D3E0D3",we:"#E7F0E4"},
+ feuer:{name:"Feuer",pri:"#8B1E1E",priH:"#B23A3A",priT:"#F6CACA",akz:"#FFB703",onAkz:"#5A0F0F",paper:"#FCF6F4",ink:"#3A1414",muted:"#7A5A5A",rule:"#EBD6D2",we:"#F7E9E6"},
+ holz:{name:"Holz",pri:"#5A3A1E",priH:"#7D5532",priT:"#EBD9C6",akz:"#F28C28",onAkz:"#2E1A08",paper:"#FAF6F0",ink:"#2E2116",muted:"#7A6A5A",rule:"#E5D9C8",we:"#F2EADF"},
+ lila:{name:"Lila",pri:"#4B2A7B",priH:"#6C47A6",priT:"#DCCFF2",akz:"#F7A8D8",onAkz:"#3A1F63",paper:"#F8F5FC",ink:"#261A3A",muted:"#6E6382",rule:"#E1D8EE",we:"#EFE8F8"},
+ nacht:{name:"Nacht",dark:true,pri:"#0B1220",priH:"#1E2A3E",priT:"#93A3B8",onPri:"#E5E7EB",akz:"#38BDF8",onAkz:"#04131F",
+     paper:"#0F1623",card:"#172133",ink:"#E5E7EB",muted:"#94A3B8",rule:"#2A3850",we:"#131C2B"}
+};
+function applyTheme(id){
+  var t=THEMES[id]||THEMES.standard; id=THEMES[id]?id:"standard";
+  var v={pri:t.pri,"pri-h":t.priH,"pri-t":t.priT,"on-pri":t.onPri||"#FFFFFF",
+    akz:t.akz,"on-akz":t.onAkz,hot:t.hot||t.akz,"on-hot":t.onHot||t.onAkz,brand2:t.brand2||t.akz,
+    band:t.band||("repeating-linear-gradient(90deg,"+t.akz+" 0 22px,"+t.priH+" 22px 24px)"),
+    solid:t.solid||(t.dark?t.akz:t.pri),paper:t.paper,card:t.card||"#FFFFFF",ink:t.ink,muted:t.muted,rule:t.rule,we:t.we};
+  var r=document.documentElement;
+  for(var k in v) r.style.setProperty("--"+k,v[k]);
+  r.style.colorScheme=t.dark?"dark":"light";
+  document.getElementById("metaTheme").setAttribute("content",t.pri);
+  var base=id==="standard"?"./":"./themes/";
+  setLink("manifest", id==="standard"?"./manifest.webmanifest":base+"manifest-"+id+".webmanifest");
+  setLink("icon", id==="standard"?"./icon-192.png":base+"icon-"+id+"-192.png");
+  setLink("apple-touch-icon", id==="standard"?"./icon-192.png":base+"icon-"+id+"-192.png");
+  return id;
+}
+function setLink(rel,href){
+  var l=document.head.querySelector('link[rel="'+rel+'"]');
+  if(!l){l=document.createElement("link");l.rel=rel;document.head.appendChild(l);}
+  if(l.getAttribute("href")!==href)l.setAttribute("href",href);
+}
+var THEME_ID; try{THEME_ID=localStorage.getItem("sz-theme")||"standard";}catch(e){THEME_ID="standard";}
+THEME_ID=applyTheme(THEME_ID);
+</script>
 <script src="./jspdf.umd.min.js"></script>
 <script>if(!window.jspdf){var _s=document.createElement("script");
 _s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";document.head.appendChild(_s);}</script>
 <style>
 :root{
-  --paper:#F4F7FC; --ink:#16233A; --muted:#5F7188; --rule:#D3DCE9;
-  --blau:#11386E; --blau-h:#2A5FA8; --blau-t:#BFD4F0;
-  --gelb:#FFC72C; --gelb-d:#E0A800;
   --c-normal:#EDEBDF; --c-urlaub:#BDD7EE; --c-abbau:#E2EFDA; --c-krank:#F4A9C0; --c-frei:#E6E6E2;
   --tap:52px;
 }
@@ -24,81 +58,91 @@ body{
   font-size:16px; line-height:1.4; font-variant-numeric:tabular-nums;
   padding-bottom:96px;
 }
+button{color:var(--ink);font-family:inherit}
 .wrap{max-width:560px;margin:0 auto;padding:0 14px}
 
 /* Kopf */
-header{background:var(--blau);color:#fff;padding:14px 0 0}
+header{background:var(--pri);color:var(--on-pri);padding:14px 0 0}
 header .wrap{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .brand{font-weight:800;letter-spacing:.02em;font-size:15px}
-.brand span{color:var(--gelb)}
-.band{height:7px;background:repeating-linear-gradient(90deg,var(--gelb) 0 22px,var(--blau-h) 22px 24px);margin-top:12px}
+.brand span{color:var(--brand2)}
+.band{height:7px;background:var(--band);margin-top:12px}
 
 /* Monatsnavi */
 .mnav{display:flex;align-items:center;gap:10px;padding:12px 0 4px}
 .mnav b{font-size:20px;font-weight:800;flex:1}
-.mnav button{width:40px;height:40px;border-radius:10px;border:1.5px solid var(--rule);background:#fff;font-size:20px;font-weight:700;color:var(--ink)}
+.mnav button{width:40px;height:40px;border-radius:10px;border:1.5px solid var(--rule);background:var(--card);font-size:20px;font-weight:700}
 
 /* Tabs */
-nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1.5px solid var(--rule);
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1.5px solid var(--rule);
   display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:40}
 nav.tabs button{flex:1;border:0;background:none;padding:9px 2px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--muted)}
 nav.tabs button b{display:block;font-size:19px;font-weight:400;line-height:1.1}
-nav.tabs button.on{background:var(--gelb);color:var(--blau)}
+nav.tabs button.on{background:var(--akz);color:var(--on-akz)}
 
 section{display:none;padding-top:6px}
 section.on{display:block}
 
 /* Stempelblock */
-.stamp{background:var(--blau);border-radius:16px;padding:16px;color:#fff;margin:6px 0 16px}
+.stamp{background:var(--pri);border-radius:16px;padding:16px;color:var(--on-pri);margin:6px 0 16px}
 .stamp .now{font-size:44px;font-weight:800;line-height:1;letter-spacing:-.02em}
-.stamp .day{color:var(--blau-t);font-size:13.5px;margin-top:4px}
+.stamp .day{color:var(--pri-t);font-size:13.5px;margin-top:4px}
 .stamp .btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
-.stamp .btns button{min-height:var(--tap);border:0;border-radius:12px;background:var(--blau-h);color:#fff;font-weight:700;font-size:14px;padding:6px}
-.stamp .btns button.hot{background:var(--gelb);color:var(--blau)}
-.stamp .btns button:disabled{opacity:.35}
+.stamp .btns button{min-height:var(--tap);border:0;border-radius:12px;background:var(--pri-h);color:var(--on-pri);font-weight:700;font-size:14px;padding:6px}
+.stamp .btns button.hot{background:var(--hot);color:var(--on-hot)}
 
 /* Datumzeile */
 .datebar{display:flex;gap:8px;align-items:center;margin-bottom:14px}
 .datebar input{flex:1;min-height:var(--tap)}
-.datebar button{width:46px;min-height:var(--tap);border-radius:10px;border:1.5px solid var(--rule);background:#fff;font-size:18px;font-weight:700}
+.datebar button{width:46px;min-height:var(--tap);border-radius:10px;border:1.5px solid var(--rule);background:var(--card);font-size:18px;font-weight:700}
 
 /* Status-Chips */
 .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
-.chips button{border:1.5px solid var(--rule);background:#fff;border-radius:999px;padding:10px 14px;font-size:14px;font-weight:600;color:var(--ink)}
-.chips button.on{border-color:var(--blau);box-shadow:inset 0 0 0 2px var(--blau)}
+.chips button{border:1.5px solid var(--rule);background:var(--card);border-radius:999px;padding:10px 14px;font-size:14px;font-weight:600}
+.chips button.on{border-color:var(--solid);box-shadow:inset 0 0 0 2px var(--solid)}
 .chips button i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:-1px}
 
 label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:0 0 5px}
-input,select{width:100%;min-height:var(--tap);border:1.5px solid var(--rule);border-radius:11px;background:#fff;
+input,select{width:100%;min-height:var(--tap);border:1.5px solid var(--rule);border-radius:11px;background:var(--card);
   padding:0 12px;font:inherit;font-size:17px;color:var(--ink)}
-input:focus,select:focus,button:focus-visible{outline:3px solid var(--gelb);outline-offset:1px}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--solid);outline-offset:1px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .field{margin-bottom:14px}
 .jetzt{margin-top:6px;display:flex;gap:6px}
-.jetzt button{border:1.5px solid var(--rule);background:#fff;border-radius:9px;padding:7px 11px;font-size:12.5px;font-weight:700}
+.jetzt button{border:1.5px solid var(--rule);background:var(--card);border-radius:9px;padding:7px 11px;font-size:12.5px;font-weight:700}
 
-.sum{border:1.5px solid var(--rule);border-radius:14px;background:#fff;padding:12px 14px;margin-bottom:16px}
+.sum{border:1.5px solid var(--rule);border-radius:14px;background:var(--card);padding:12px 14px;margin-bottom:16px}
 .sum div{display:flex;justify-content:space-between;padding:5px 0;font-size:15px}
 .sum div+div{border-top:1px solid var(--rule)}
 .sum b{font-weight:800}
 
-.big{width:100%;min-height:56px;border:0;border-radius:13px;background:var(--gelb);color:var(--blau);font-weight:800;font-size:16px;margin-bottom:10px}
-.big.dark{background:var(--blau);color:#fff}
-.ghost{width:100%;min-height:46px;border:1.5px solid var(--rule);background:#fff;border-radius:11px;font-weight:700;font-size:14px;margin-bottom:18px}
+.big{width:100%;min-height:56px;border:0;border-radius:13px;background:var(--akz);color:var(--on-akz);font-weight:800;font-size:16px;margin-bottom:10px}
+.big.dark{background:var(--pri);color:var(--on-pri)}
+.ghost{width:100%;min-height:46px;border:1.5px solid var(--rule);background:var(--card);border-radius:11px;font-weight:700;font-size:14px;margin-bottom:18px}
 
 /* Monatsliste */
-ul.days{list-style:none;margin:0 0 20px;padding:0;border:1.5px solid var(--rule);border-radius:14px;overflow:hidden;background:#fff}
+ul.days{list-style:none;margin:0 0 20px;padding:0;border:1.5px solid var(--rule);border-radius:14px;overflow:hidden;background:var(--card)}
 ul.days li{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--rule);min-height:54px}
 ul.days li:last-child{border-bottom:0}
-ul.days li.we{background:#E9EFF8;color:var(--muted)}
+ul.days li.we{background:var(--we);color:var(--muted)}
 ul.days .d{width:34px;font-weight:800;font-size:15px}
 ul.days .t{flex:1;font-size:14px}
 ul.days .t small{display:block;color:var(--muted);font-size:12px}
 ul.days .o{font-weight:800;font-size:15px}
 ul.days .bar{width:5px;align-self:stretch;border-radius:3px;background:transparent}
+
+/* Designauswahl */
+.themes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.themes button{border:1.5px solid var(--rule);background:var(--card);border-radius:13px;padding:0;overflow:hidden;text-align:left}
+.themes button.on{border-color:var(--solid);box-shadow:inset 0 0 0 2px var(--solid)}
+.themes .pv{height:46px;display:flex;align-items:flex-end;padding:8px}
+.themes .pv i{display:block;height:12px;width:44px;border-radius:6px}
+.themes .pb{height:5px}
+.themes span{display:block;padding:9px 11px;font-size:14px;font-weight:700}
+
 h2{font-size:15px;font-weight:800;margin:22px 0 10px}
 p.hint{font-size:13px;color:var(--muted);margin:-4px 0 16px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:104px;background:var(--blau);color:#fff;
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:104px;background:var(--pri);color:var(--on-pri);
   padding:11px 18px;border-radius:11px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -107,7 +151,7 @@ p.hint{font-size:13px;color:var(--muted);margin:-4px 0 16px}
 <header>
   <div class="wrap">
     <div class="brand">STUNDEN<span>ZETTEL</span></div>
-    <div class="brand" id="hdrName" style="font-weight:600;color:var(--blau-t)"></div>
+    <div class="brand" id="hdrName" style="font-weight:600;color:var(--pri-t)"></div>
   </div>
   <div class="band"></div>
 </header>
@@ -164,16 +208,12 @@ p.hint{font-size:13px;color:var(--muted);margin:-4px 0 16px}
         <datalist id="bsListe"></datalist>
       </div>
       <div class="field">
-        <label for="ot">Überstunden (Stunden)</label>
-        <input type="number" id="ot" step="0.25" inputmode="decimal">
-        <div class="jetzt"><button id="otAuto">Automatisch berechnen</button></div>
+        <label for="ot">Überstunden (Stunden) – Minus = Überstundenabbau</label>
+        <input type="text" id="ot" inputmode="decimal" autocomplete="off">
+        <div class="jetzt"><button id="otSign">+ / −</button><button id="otAuto">Automatisch berechnen</button></div>
       </div>
     </div>
 
-    <div class="field" id="abbauFeld" style="display:none">
-      <label for="abbau">Abgebaute Überstunden</label>
-      <input type="number" id="abbau" step="0.25" inputmode="decimal" placeholder="leer = ganzer Tag">
-    </div>
 
     <div class="sum" id="tagSum"></div>
     <button class="big" id="save">Tag speichern</button>
@@ -194,7 +234,7 @@ p.hint{font-size:13px;color:var(--muted);margin:-4px 0 16px}
     <button class="ghost" data-pdfopen="1">Stattdessen im Browser öffnen</button>
 
     <h2>Monatsübersicht zur Lohnmeldung</h2>
-    <p class="hint">Überstunden, Urlaub, Überstundenabbau und Krankheit.</p>
+    <p class="hint">Plusstunden unter „Normal“, Minusstunden unter „Überstundenabbau“, dazu Urlaub und Krank.</p>
     <button class="big" data-pdf="2">Als PDF herunterladen</button>
     <button class="ghost" data-pdfopen="2">Stattdessen im Browser öffnen</button>
 
@@ -207,6 +247,12 @@ p.hint{font-size:13px;color:var(--muted);margin:-4px 0 16px}
 
   <!-- EINSTELLUNGEN -->
   <section id="v-set">
+    <h2 style="margin-top:8px">Design</h2>
+    <div class="themes" id="themeGrid"></div>
+    <p class="hint" id="themeHint">Das Symbol auf dem Startbildschirm übernimmt ein neues Design erst nach einer Neuinstallation:
+      Symbol lange drücken → Deinstallieren, dann die Adresse in Chrome öffnen → App installieren.
+      Deine Einträge bleiben normalerweise erhalten – speichere zur Sicherheit vorher unter Export eine Sicherung.</p>
+    <h2>Angaben</h2>
     <div class="field"><label for="sName">Name auf dem Zettel</label><input type="text" id="sName"></div>
     <div class="field"><label for="sFirma">Firma</label><input type="text" id="sFirma"></div>
     <div class="row">
@@ -249,7 +295,6 @@ const STATUS=[
  {k:"normal",n:"Arbeit",c:"var(--c-normal)"},
  {k:"urlaub",n:"Urlaub",c:"var(--c-urlaub)"},
  {k:"krank",n:"Krank",c:"var(--c-krank)"},
- {k:"abbau",n:"Überstundenabbau",c:"var(--c-abbau)"},
  {k:"frei",n:"Frei / Feiertag",c:"var(--c-frei)"}
 ];
 const KEY="stundenzettel-v1";
@@ -310,15 +355,14 @@ function blankDay(){
   return {status:"normal",beginn:s.beginn,ende:fr?s.endeFr:s.ende,
           p1von:s.p1von,p1bis:s.p1bis,
           p2von:fr?"":s.p2von,p2bis:fr?"":s.p2bis,
-          baustelle:s.baustelle,ot:null,abbau:null};
+          baustelle:s.baustelle,ot:null};
 }
 function loadDay(){
   const d=DB.days[selDate]||blankDay();
   status=d.status||"normal";
   $("datum").value=selDate;
   ["beginn","ende","p1von","p1bis","p2von","p2bis","baustelle"].forEach(k=>$(k).value=d[k]||"");
-  $("ot").value = DB.days[selDate]&&d.otManual ? d.ot : autoOT(d);
-  $("abbau").value = d.abbau??"";
+  $("ot").value = num(DB.days[selDate]&&d.otManual ? (d.ot||0) : autoOT(d));
   otTouched = !!(DB.days[selDate] && DB.days[selDate].otManual);
   renderChips(); renderTagSum();
 }
@@ -326,8 +370,7 @@ function collect(){
   const d={status:status,
     beginn:$("beginn").value,ende:$("ende").value,p1von:$("p1von").value,p1bis:$("p1bis").value,
     p2von:$("p2von").value,p2bis:$("p2bis").value,baustelle:$("baustelle").value.trim()};
-  d.ot = status==="normal" && $("ot").value!=="" ? parseFloat($("ot").value.replace(",",".")) : 0;
-  d.abbau = status==="abbau" && $("abbau").value!=="" ? parseFloat($("abbau").value.replace(",",".")) : null;
+  d.ot = status==="normal" ? numOr($("ot").value.replace("−","-").replace(/\s/g,""),0) : 0;
   d.otManual = otTouched;
   return d;
 }
@@ -335,7 +378,6 @@ function renderChips(){
   $("statusChips").innerHTML=STATUS.map(s=>
     `<button data-st="${s.k}" class="${s.k===status?"on":""}"><i style="background:${s.c}"></i>${s.n}</button>`).join("");
   $("normalFelder").style.display = status==="normal"?"block":"none";
-  $("abbauFeld").style.display = status==="abbau"?"block":"none";
 }
 function renderTagSum(){
   const d=collect();
@@ -353,22 +395,21 @@ function renderTagSum(){
 function renderMonat(){
   $("mLabel").textContent=MON[view.m]+" "+view.y;
   const last=new Date(view.y,view.m+1,0).getDate();
-  let html="",sumMin=0,sumOT=0,nU=0,nK=0,nA=0,nT=0;
+  let html="",sumMin=0,sumPlus=0,sumMinus=0,nU=0,nK=0,nT=0;
   for(let i=1;i<=last;i++){
     const dt=new Date(view.y,view.m,i), key=iso(dt), d=DB.days[key], we=dt.getDay()===0||dt.getDay()===6;
     let main="—",sub=WT[dt.getDay()].slice(0,2),right="",bar="transparent";
     if(d){
       const st=STATUS.find(s=>s.k===d.status); bar=st.c;
       if(d.status==="normal"){
-        main=(d.beginn||"?")+" – "+(d.ende||"?");
+        main=(!d.beginn&&!d.ende)?"Überstundenabbau":(d.beginn||"?")+" – "+(d.ende||"?");
         const p=[[d.p1von,d.p1bis],[d.p2von,d.p2bis]].filter(x=>x[0]&&x[1]).map(x=>x[0]+"–"+x[1]).join("  ");
         sub=WT[dt.getDay()].slice(0,2)+(p?"  ·  "+p:"")+(d.baustelle?"  ·  "+d.baustelle:"");
-        const o=otOf(d,key); right=fmtOT(o); sumMin+=minutes(d); sumOT+=o; nT++;
+        const o=otOf(d,key); right=fmtOT(o); sumMin+=minutes(d); if(o>0)sumPlus+=o; else sumMinus+=o; if(d.beginn||d.ende)nT++;
       }else{
         main=st.n;
         if(d.status==="urlaub")nU++;
         if(d.status==="krank")nK++;
-        if(d.status==="abbau"){nA++; right=d.abbau?"- "+num(d.abbau):"";}
       }
     }
     html+=`<li class="${we?"we":""}" data-d="${key}"><span class="bar" style="background:${bar}"></span>
@@ -378,8 +419,10 @@ function renderMonat(){
   $("monatSum").innerHTML=
     `<div><span>Arbeitstage</span><b>${nT}</b></div>`+
     `<div><span>Arbeitszeit gesamt</span><b>${hm(sumMin)} h</b></div>`+
-    `<div><span>Überstunden</span><b>${sumOT?fmtOT(sumOT):"0"}</b></div>`+
-    `<div><span>Urlaub / Krank / Abbau</span><b>${nU} / ${nK} / ${nA}</b></div>`;
+    `<div><span>Überstunden</span><b>${sumPlus?fmtOT(sumPlus):"0"}</b></div>`+
+    `<div><span>Überstundenabbau</span><b>${sumMinus?fmtOT(sumMinus):"0"}</b></div>`+
+    `<div><span>Saldo</span><b>${(sumPlus+sumMinus)?fmtOT(sumPlus+sumMinus):"0"}</b></div>`+
+    `<div><span>Urlaub / Krank</span><b>${nU} / ${nK}</b></div>`;
   const bs=[...new Set(Object.values(DB.days).map(d=>d.baustelle).filter(Boolean))];
   $("bsListe").innerHTML=bs.map(b=>`<option value="${b}">`).join("");
 }
@@ -425,7 +468,7 @@ function pdf1(){
     doc.text(i+".",27.8,base(i),{align:"center"});
     if(i>last)continue;
     const d=DB.days[iso(new Date(view.y,view.m,i))];
-    if(!d||d.status!=="normal")continue;
+    if(!d||d.status!=="normal"||(!d.beginn&&!d.ende))continue;
     doc.setFont("helvetica","normal");
     if(d.beginn)doc.text(d.beginn,mid(1),base(i),{align:"center"});
     if(d.p1von&&d.p1bis)doc.text(d.p1von+" - "+d.p1bis,mid(2),base(i),{align:"center"});
@@ -470,9 +513,12 @@ function pdf2(){
     const y=top+hh+(i-1)*rh, key=iso(new Date(view.y,view.m,i)), d=DB.days[key];
     cell(doc,i+".",cx[0],W[0],y,rh,"c");
     if(!d)continue;
-    if(d.status==="normal")cell(doc,fmtOT(otOf(d,key)),cx[1],W[1],y,rh,"c");
+    if(d.status==="normal"){
+      const o=otOf(d,key);
+      if(o>0)cell(doc,fmtOT(o),cx[1],W[1],y,rh,"c");        // Plusstunden -> Normal
+      else if(o<0)cell(doc,fmtOT(o),cx[3],W[3],y,rh,"c");   // Minusstunden -> Überstundenabbau
+    }
     if(d.status==="urlaub")cell(doc,"X",cx[2],W[2],y,rh,"c");
-    if(d.status==="abbau")cell(doc,d.abbau?"- "+num(d.abbau):"X",cx[3],W[3],y,rh,"c");
     if(d.status==="krank")cell(doc,"X",cx[4],W[4],y,rh,"c");
   }
   const bot=top+hh+last*rh;
@@ -513,13 +559,14 @@ $("dayList").onclick=e=>{const li=e.target.closest("li");if(!li)return;selDate=l
   document.querySelector('nav.tabs button[data-v="tag"]').click();};
 
 document.querySelectorAll("[data-now]").forEach(b=>b.onclick=()=>{$(b.dataset.now).value=nowTime();renderTagSum();recalcOT();});
-document.querySelectorAll("[data-clr]").forEach(b=>b.onclick=()=>{$(b.dataset.clr).value="";renderTagSum();});
+document.querySelectorAll("[data-clr]").forEach(b=>b.onclick=()=>{$(b.dataset.clr).value="";recalcOT();renderTagSum();});
 ["beginn","ende","p1von","p1bis","p2von","p2bis"].forEach(k=>$(k).onchange=()=>{recalcOT();renderTagSum();});
 $("ot").oninput=()=>{otTouched=true;renderTagSum();};
 $("baustelle").onfocus=()=>{if(!$("baustelle").value)$("baustelle").value="BV ";};
 $("baustelle").onblur=()=>{if($("baustelle").value.trim()==="BV")$("baustelle").value="";};
 $("otAuto").onclick=()=>{otTouched=false;recalcOT();renderTagSum();toast("Überstunden neu berechnet");};
-function recalcOT(){ if(otTouched)return; $("ot").value=autoOT(collect()); }
+function recalcOT(){ if(otTouched)return; $("ot").value=num(autoOT(collect())); }
+$("otSign").onclick=()=>{const v=numOr($("ot").value.replace("−","-"),0);$("ot").value=num(-v);otTouched=true;renderTagSum();};
 function numOr(v,alt){const n=parseFloat(String(v).replace(",","."));return isNaN(n)?alt:n;}
 function nowTime(){const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes());}
 
@@ -599,9 +646,29 @@ if("serviceWorker" in navigator){
   });
 }
 
+function renderThemes(){
+  $("themeGrid").innerHTML=Object.entries(THEMES).map(([id,t])=>{
+    const band=t.band||("repeating-linear-gradient(90deg,"+t.akz+" 0 10px,"+t.priH+" 10px 11px)");
+    return `<button data-theme="${id}" class="${id===THEME_ID?"on":""}">
+      <div class="pv" style="background:${t.pri}"><i style="background:${t.akz}"></i></div>
+      <div class="pb" style="background:${band}"></div><span>${t.name}</span></button>`;}).join("");
+}
+$("themeGrid").onclick=e=>{
+  const b=e.target.closest("[data-theme]"); if(!b)return;
+  THEME_ID=applyTheme(b.dataset.theme);
+  try{localStorage.setItem("sz-theme",THEME_ID);}catch(err){}
+  renderThemes(); toast("Design: "+THEMES[THEME_ID].name);
+};
+
 (async function init(){
+  renderThemes();
   const saved=await Store.get();
   if(saved){DB.settings=Object.assign({},DEF.settings,saved.settings||{});DB.days=saved.days||{};}
+  let mig=false;
+  Object.entries(DB.days).forEach(([k,d])=>{ if(d.status==="abbau"){
+    DB.days[k]={status:"normal",beginn:"",ende:"",p1von:"",p1bis:"",p2von:"",p2bis:"",baustelle:"",
+      ot:-(d.abbau||sollFor(k)),otManual:true}; mig=true; }});
+  if(mig)await Store.set(DB);
   fillSet();loadDay();renderMonat();tick();
 })();
 </script>
